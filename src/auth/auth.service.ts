@@ -1,4 +1,6 @@
+import 'dotenv/config'
 import {prisma} from "../../prisma/prisma.js";
+import jwt from 'jsonwebtoken'
 import * as bcrypt from 'bcrypt'
 import {RegisterPayload} from "./types.js";
 
@@ -32,6 +34,31 @@ export class AuthService {
         })
 
         return user;
+    }
+
+    async login({ email, password }: Pick<RegisterPayload, 'password' | 'email'>) {
+        const existingUser = await prisma.user.findUnique({
+            where: {
+                email: email,
+            }
+        })
+        if (!existingUser) {
+            throw new Error(`User doest not exist!`)
+        }
+        const validPass = await bcrypt.compare(password, existingUser.password);
+        if (!validPass) {
+            throw new Error(`Incorrect password!`);
+        }
+
+        const token = jwt.sign(
+            { id: existingUser.id, email: existingUser.email },
+            process.env.JWT_SECRET!,
+            { expiresIn: '1d' }
+        )
+
+        return {
+            access_token: token,
+        }
     }
 }
 

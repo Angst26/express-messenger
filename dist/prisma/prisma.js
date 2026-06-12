@@ -1,3 +1,7 @@
-import { PrismaClient } from "@prisma/client";
-export const prisma = new PrismaClient();
+import { PrismaClient } from "../src/generated/client.js";
+import { PrismaPg } from "@prisma/adapter-pg";
+const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL,
+});
+export const prisma = new PrismaClient({ adapter });
 //# sourceMappingURL=prisma.js.map
